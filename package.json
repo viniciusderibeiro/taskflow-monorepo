@@ -1,0 +1,30 @@
+{
+  "name": "taskflow-monorepo",
+  "version": "1.0.0",
+  "description": "This project is a Kanban task management system built as a monorepo for learning purposes. It is designed to cover both fullstack development and agile methodologies in a practical way.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/viniciusderibeiro/taskflow-monorepo.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/viniciusderibeiro/taskflow-monorepo/issues"
+  },
+  "homepage": "https://github.com/viniciusderibeiro/taskflow-monorepo#readme",
+  "devDependencies": {
+    "@commitlint/cli": "^20.5.3",
+    "@commitlint/config-conventional": "^20.5.3",
+    "husky": "^9.1.7"
+  }
+}
