@@ -5,7 +5,12 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.taskflow.api.model.enums.TaskPriority;
+import com.taskflow.api.model.enums.TaskStatus;
+
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -28,8 +33,12 @@ public class Task {
     private Long id;
     private String title;
     private String description;
-    private String status;
-    private String priority;
+
+    @Enumerated(EnumType.STRING)
+    private TaskStatus status;
+
+    @Enumerated(EnumType.STRING)
+    private TaskPriority priority;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
