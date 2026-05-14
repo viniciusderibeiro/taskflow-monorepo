@@ -31,7 +31,6 @@ target/
 *.ear
 .mvn/wrapper/maven-wrapper.jar
 hs_err_pid*
-application-local.properties
 
 # Node / Next.js
 node_modules/
