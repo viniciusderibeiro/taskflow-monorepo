@@ -32,6 +32,8 @@ services:
       DB_URL: jdbc:postgresql://db:5432/taskflowdb
       DB_USERNAME: ${DB_USERNAME}
       DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
     depends_on:
       - db
       - redis
