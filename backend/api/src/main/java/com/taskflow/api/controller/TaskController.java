@@ -2,6 +2,7 @@ package com.taskflow.api.controller;
 
 import java.util.List;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.taskflow.api.model.Task;
+import com.taskflow.api.model.User;
 import com.taskflow.api.model.enums.TaskPriority;
 import com.taskflow.api.model.enums.TaskStatus;
 import com.taskflow.api.service.TaskService;
@@ -27,8 +29,8 @@ public class TaskController {
     private final TaskService taskService;
 
     @GetMapping
-    public List<Task> findAll() {
-        return taskService.findAll();
+    public List<Task> findAll(@AuthenticationPrincipal User user) {
+        return taskService.findAll(user);
     }
 
     @GetMapping("/{id}")
@@ -37,8 +39,8 @@ public class TaskController {
     }
 
     @PostMapping
-    public Task save(@RequestBody Task task) {
-        return taskService.save(task);
+    public Task save(@RequestBody Task task, @AuthenticationPrincipal User user) {
+        return taskService.save(task, user);
     }
 
     @PutMapping("/{id}")

@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.taskflow.api.model.Task;
+import com.taskflow.api.model.User;
 import com.taskflow.api.model.enums.TaskPriority;
 import com.taskflow.api.model.enums.TaskStatus;
 import com.taskflow.api.repository.TaskRepository;
@@ -17,15 +18,16 @@ public class TaskService {
 
     private final TaskRepository taskRepository;
 
-    public List<Task> findAll() {
-        return taskRepository.findAll();
+    public List<Task> findAll(User user) {
+        return taskRepository.findByUser(user);
     }
 
     public Task findById(Long id) {
         return taskRepository.findById(id).orElseThrow();
     }
 
-    public Task save(Task task) {
+    public Task save(Task task, User user) {
+        task.setUser(user);
         return taskRepository.save(task);
     }
 
