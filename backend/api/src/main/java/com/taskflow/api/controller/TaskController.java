@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.taskflow.api.dto.request.UpdatePriorityRequest;
+import com.taskflow.api.dto.request.UpdateStatusRequest;
 import com.taskflow.api.model.Task;
 import com.taskflow.api.model.User;
-import com.taskflow.api.model.enums.TaskPriority;
-import com.taskflow.api.model.enums.TaskStatus;
 import com.taskflow.api.service.TaskService;
 
 import lombok.RequiredArgsConstructor;
@@ -44,22 +44,25 @@ public class TaskController {
     }
 
     @PutMapping("/{id}")
-    public Task update(@PathVariable Long id, @RequestBody Task task) {
-        return taskService.update(id, task);
+    public Task update(@PathVariable Long id, @RequestBody Task task,
+            @AuthenticationPrincipal User user) {
+        return taskService.update(id, task, user);
     }
 
     @PatchMapping("/{id}/priority")
-    public Task updatePriority(@PathVariable Long id, @RequestBody TaskPriority taskPriority) {
-        return taskService.updatePriority(id, taskPriority);
+    public Task updatePriority(@PathVariable Long id, @RequestBody UpdatePriorityRequest request,
+            @AuthenticationPrincipal User user) {
+        return taskService.updatePriority(id, request.priority(), user);
     }
 
     @PatchMapping("/{id}/status")
-    public Task updateStatus(@PathVariable Long id, @RequestBody TaskStatus taskStatus) {
-        return taskService.updateStatus(id, taskStatus);
+    public Task updateStatus(@PathVariable Long id, @RequestBody UpdateStatusRequest request,
+            @AuthenticationPrincipal User user) {
+        return taskService.updateStatus(id, request.status(), user);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        taskService.delete(id);
+    public void delete(@PathVariable Long id, @AuthenticationPrincipal User user) {
+        taskService.delete(id, user);
     }
 }
