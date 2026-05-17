@@ -24,8 +24,10 @@ public class TaskService {
         return taskRepository.findByUser(user);
     }
 
-    public Task findById(Long id) {
-        return taskRepository.findById(id).orElseThrow();
+    public Task findById(Long id, User user) {
+        return taskRepository.findByIdAndUser(id, user)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Tarefa não encontrada"));
     }
 
     public Task save(Task task, User user) {
@@ -33,16 +35,8 @@ public class TaskService {
         return taskRepository.save(task);
     }
 
-    private void verifyOwnership(Task task, User user) {
-        if (!task.getUser().getId().equals(user.getId())) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "Você não tem permissão para modificar esta tarefa");
-        }
-    }
-
     public Task update(Long id, Task taskData, User user) {
-        Task task = findById(id);
-        verifyOwnership(task, user);
+        Task task = findById(id, user);
         task.setTitle(taskData.getTitle());
         task.setDescription(taskData.getDescription());
         task.setPriority(taskData.getPriority());
@@ -51,23 +45,20 @@ public class TaskService {
     }
 
     public Task updatePriority(Long id, TaskPriority priority, User user) {
-        Task task = findById(id);
-        verifyOwnership(task, user);
+        Task task = findById(id, user);
         task.setPriority(priority);
         return taskRepository.save(task);
     }
 
     public Task updateStatus(Long id, TaskStatus status, User user) {
-        Task task = findById(id);
-        verifyOwnership(task, user);
+        Task task = findById(id, user);
         task.setStatus(status);
         return taskRepository.save(task);
     }
 
     public void delete(Long id, User user) {
-        Task task = findById(id);
-        verifyOwnership(task, user);
-        taskRepository.deleteById(id);
+        Task task = findById(id, user);
+        taskRepository.delete(task);
     }
 
 }

@@ -8,6 +8,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import com.taskflow.api.model.enums.TaskPriority;
 import com.taskflow.api.model.enums.TaskStatus;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -34,7 +35,10 @@ public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(nullable = false)
     private String title;
+
     private String description;
 
     @Enumerated(EnumType.STRING)
