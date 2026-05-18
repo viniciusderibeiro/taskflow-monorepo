@@ -6,16 +6,11 @@ This project is a Kanban task management system built as a monorepo for learning
 
 - **Backend:** Java 21 + Spring Boot 3, PostgreSQL, Redis, JWT  
 - **Frontend:** Next.js 14, TypeScript, Tailwind CSS, React Query  
-- **Infrastructure:** Docker Compose, GitHub Actions, Railway, Vercel  
-
-## How to run locally
-
-> Under construction
+- **Infrastructure:** Docker Compose
 
 ## Documentation
 
-- [Architecture Decisions](docs/adr/)  
-- [API Swagger](http://localhost:8080/swagger-ui.html) *(available when the backend is running)*  
+- [API Swagger](http://localhost:8080/swagger-ui.html)
 
 ## Status
 
