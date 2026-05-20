@@ -12,7 +12,7 @@
   "scripts": {
     "dev:frontend": "npm run dev -w frontend",
     "build:frontend": "npm run build -w frontend",
-    "prepare": "husky"
+    "prepare": "husky || true"
   },
   "repository": {
     "type": "git",
