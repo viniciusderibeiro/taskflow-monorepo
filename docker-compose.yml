@@ -34,9 +34,24 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: ${JWT_EXPIRATION}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000}
     depends_on:
       - db
       - redis
+    networks:
+      - taskflow-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8080
+    container_name: taskflow-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
     networks:
       - taskflow-network
 
