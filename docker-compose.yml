@@ -13,14 +13,6 @@ services:
     networks:
       - taskflow-network
 
-  redis:
-    image: redis:7-alpine
-    container_name: taskflow-redis
-    ports:
-      - "6379:6379"
-    networks:
-      - taskflow-network
-
   backend:
     build:
       context: ./backend/api
@@ -37,7 +29,6 @@ services:
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000}
     depends_on:
       - db
-      - redis
     networks:
       - taskflow-network
 
