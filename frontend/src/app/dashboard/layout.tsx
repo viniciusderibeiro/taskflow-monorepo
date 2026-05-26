@@ -20,12 +20,12 @@ export default function DashboardLayout({ children }: Props) {
 
   function handleLogout() {
     logout()
-    router.push('/auth/login')
+    window.location.href = '/auth/login'
   }
 
   return (
     <div className="min-h-screen bg-stone-50">
-      <header className="h-11 bg-white border-b border-stone-200 px-5 flex items-center justify-between sticky top-0 z-30">
+      <header className="h-11 bg-white border-b border-stone-200 px-5 py-3 flex items-center justify-between sticky top-0 z-30">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 bg-violet-700 rounded-lg flex items-center justify-center flex-shrink-0">
             <span className="text-white text-xs font-bold">T</span>
@@ -42,7 +42,15 @@ export default function DashboardLayout({ children }: Props) {
           </button>
         </div>
       </header>
-      <main className="px-6 py-6">{children}</main>
+      <main
+        className="px-4 sm:px-6 py-5 sm:py-6 min-h-[calc(100vh-44px)]"
+        style={{
+          backgroundImage: 'radial-gradient(circle, #d1d5db 1px, transparent 1px)',
+          backgroundSize: '22px 22px',
+        }}
+      >
+        {children}
+      </main>
     </div>
   )
 }

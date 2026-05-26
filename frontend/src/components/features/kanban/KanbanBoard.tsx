@@ -1,67 +1,30 @@
 'use client'
 
-import { useCallback, useRef, useState, useEffect } from 'react'
-import type { Task, TaskStatus } from '@/types/task'
+import { useCallback, useRef, useState, useEffect, useMemo } from 'react'
+import type { Task, TaskStatus, TaskPriority } from '@/types/task'
 import { useTasks, useUpdateTaskStatus } from '@/hooks/useTasks'
-import Tag from '@/components/ui/Tag'
-import Badge from '@/components/ui/Badge'
 import KanbanColumn from './KanbanColumn'
 import CreateTaskModal from './CreateTaskModal'
 
-const CalendarIcon = () => (
-  <svg
-    width="11"
-    height="11"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth={1.5}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <rect x="3" y="4" width="18" height="18" rx="2" />
-    <path d="M16 2v4M8 2v4M3 10h18" />
-  </svg>
-)
-
-interface ColumnDef {
-  status: TaskStatus
-  label: string
-  dot: string
-  borderColor: string
-  dragBg: string
+interface KanbanBoardProps {
+  search?: string
+  priorityFilter?: 'ALL' | TaskPriority
 }
 
-const COLUMNS: ColumnDef[] = [
-  {
-    status: 'BACKLOG',
-    label: 'Backlog',
-    dot: 'bg-violet-400',
-    borderColor: 'border-t-violet-400',
-    dragBg: 'bg-violet-50/60',
-  },
-  {
-    status: 'TODO',
-    label: 'To Do',
-    dot: 'bg-amber-500',
-    borderColor: 'border-t-amber-400',
-    dragBg: 'bg-amber-50/60',
-  },
-  {
-    status: 'IN_PROGRESS',
-    label: 'In Progress',
-    dot: 'bg-blue-500',
-    borderColor: 'border-t-blue-500',
-    dragBg: 'bg-blue-50/60',
-  },
-  {
-    status: 'DONE',
-    label: 'Done',
-    dot: 'bg-emerald-500',
-    borderColor: 'border-t-emerald-500',
-    dragBg: 'bg-emerald-50/60',
-  },
+// ─── Column definitions ───────────────────────────────────────────────────────
+
+const STATUSES: TaskStatus[] = ['BACKLOG', 'TODO', 'IN_PROGRESS', 'DONE']
+
+const COLUMNS: Array<{ status: TaskStatus; label: string; color: string }> = [
+  { status: 'BACKLOG',     label: 'Backlog',      color: 'bg-violet-500' },
+  { status: 'TODO',        label: 'To Do',        color: 'bg-amber-400'  },
+  { status: 'IN_PROGRESS', label: 'In Progress',  color: 'bg-blue-500'   },
+  { status: 'DONE',        label: 'Done',         color: 'bg-emerald-500' },
 ]
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type ColumnOrder = Record<TaskStatus, number[]>
 
 interface DragPayload {
   task: Task
@@ -74,50 +37,113 @@ interface DragVisual {
   task: Task
   ghostPos: { x: number; y: number }
   overStatus: TaskStatus | null
+  insertIndex: number
 }
 
-function TaskGhost({ task }: { task: Task }) {
-  const date = new Date(task.createdAt).toLocaleDateString('pt-BR', {
-    day: '2-digit',
-    month: 'short',
-  })
+// ─── Ghost card (shown while dragging) ───────────────────────────────────────
+
+const PRIO_STYLES: Record<TaskPriority, { dot: string; text: string; label: string }> = {
+  HIGH:   { dot: 'bg-red-500',    text: 'text-red-600',    label: 'Alta' },
+  MEDIUM: { dot: 'bg-orange-400', text: 'text-orange-500', label: 'Média' },
+  LOW:    { dot: 'bg-blue-400',   text: 'text-blue-500',   label: 'Baixa' },
+}
+
+function DragGhost({ task }: { task: Task }) {
+  const p = PRIO_STYLES[task.priority]
   return (
-    <div className="bg-white rounded-xl border border-stone-200 p-3.5 flex flex-col gap-2.5">
-      <Tag status={task.status} />
+    <div className="bg-white rounded-xl border border-stone-100 p-4 flex flex-col gap-3">
+      <span className={`flex items-center gap-1.5 text-xs font-semibold ${p.text}`}>
+        <span className={`w-1.5 h-1.5 rounded-full ${p.dot}`} />
+        {p.label}
+      </span>
       <h3 className="text-sm font-semibold text-stone-900 line-clamp-2 leading-snug">
         {task.title}
       </h3>
       {task.description && (
-        <p className="text-xs text-stone-500 line-clamp-2 leading-relaxed">{task.description}</p>
+        <p className="text-xs text-stone-400 line-clamp-2 leading-relaxed">{task.description}</p>
       )}
-      <div className="flex items-center justify-between pt-0.5 border-t border-stone-100">
-        <div className="flex items-center gap-1.5 text-xs text-stone-400">
-          <CalendarIcon />
-          <span>{date}</span>
-        </div>
-        <Badge priority={task.priority} />
-      </div>
     </div>
   )
 }
 
-export default function KanbanBoard() {
+// ─── Board ────────────────────────────────────────────────────────────────────
+
+export default function KanbanBoard({ search = '', priorityFilter = 'ALL' }: KanbanBoardProps) {
   const { data: tasks = [], isLoading, isError } = useTasks()
   const updateStatus = useUpdateTaskStatus()
+
+  // Per-column task ordering (client-side). Preserves reorder across refetches.
+  const [columnOrder, setColumnOrder] = useState<ColumnOrder>({
+    BACKLOG: [], TODO: [], IN_PROGRESS: [], DONE: [],
+  })
 
   const [modal, setModal] = useState<{ open: boolean; status: TaskStatus }>({
     open: false,
     status: 'TODO',
   })
 
-  // Drag state split: mutable ref (no re-render) + visual state (triggers re-render)
   const dragRef = useRef<DragPayload | null>(null)
   const dragVisualRef = useRef<DragVisual | null>(null)
   const [drag, setDrag] = useState<DragVisual | null>(null)
 
+  // ── Sync server data into local order ─────────────────────────────────────
+  // New tasks from server are appended; deleted tasks are removed; existing
+  // order is preserved so in-session reordering survives refetches.
+  useEffect(() => {
+    if (isLoading) return
+    setColumnOrder(prev => {
+      const next = { ...prev }
+      for (const status of STATUSES) {
+        const serverIds = tasks.filter(t => t.status === status).map(t => t.id)
+        const kept = prev[status].filter(id => serverIds.includes(id))
+        const added = serverIds.filter(id => !kept.includes(id))
+        next[status] = [...kept, ...added]
+      }
+      return next
+    })
+  }, [tasks, isLoading])
+
+  // ── Derived task lookup ───────────────────────────────────────────────────
+  const taskMap = useMemo(() => new Map(tasks.map(t => [t.id, t])), [tasks])
+
+  function getColumnTasks(status: TaskStatus): Task[] {
+    let result = columnOrder[status].map(id => taskMap.get(id)).filter(Boolean) as Task[]
+
+    const q = search.trim().toLowerCase()
+    if (q) {
+      result = result.filter(
+        t => t.title.toLowerCase().includes(q) || (t.description ?? '').toLowerCase().includes(q)
+      )
+    }
+
+    if (priorityFilter !== 'ALL') {
+      result = result.filter(t => t.priority === priorityFilter)
+    }
+
+    return result
+  }
+
+  // ── Insertion index helpers ───────────────────────────────────────────────
+  // Queries [data-card] elements in a column and finds where the cursor falls,
+  // skipping the dragged card itself so the index targets the ghost-removed list.
+  function computeInsertIndex(status: TaskStatus, clientY: number, draggedId: number): number {
+    const colEl = document.querySelector<HTMLElement>(`[data-col="${status}"]`)
+    if (!colEl) return 0
+    const cardEls = colEl.querySelectorAll<HTMLElement>('[data-card]')
+    let index = 0
+    for (const cardEl of cardEls) {
+      if (Number(cardEl.getAttribute('data-card')) === draggedId) continue
+      const rect = cardEl.getBoundingClientRect()
+      if (clientY > rect.top + rect.height / 2) index++
+      else break
+    }
+    return index
+  }
+
+  // ── Pointer handlers ──────────────────────────────────────────────────────
   const handlePointerDown = useCallback(
     (task: Task, e: React.PointerEvent<HTMLDivElement>) => {
-      // Interactive elements already handled in TaskCard — this is the board-level listener
+      if (e.pointerType === 'touch') return
       const rect = e.currentTarget.getBoundingClientRect()
       dragRef.current = {
         task,
@@ -137,7 +163,6 @@ export default function KanbanBoard() {
       const dx = e.clientX - ref.initialPos.x
       const dy = e.clientY - ref.initialPos.y
 
-      // 4px threshold before drag is "started"
       if (!ref.started) {
         if (Math.hypot(dx, dy) < 4) return
         ref.started = true
@@ -145,15 +170,29 @@ export default function KanbanBoard() {
         document.body.style.cursor = 'grabbing'
       }
 
-      // Ghost has pointer-events:none → elementFromPoint sees through it
-      const el = document.elementFromPoint(e.clientX, e.clientY)
-      const colEl = el?.closest('[data-col]')
-      const overStatus = (colEl?.getAttribute('data-col') as TaskStatus) ?? null
+      // Find target column by bounding rect (full column area, not just cards)
+      let overStatus: TaskStatus | null = null
+      const colEls = document.querySelectorAll<HTMLElement>('[data-col]')
+      for (const colEl of colEls) {
+        const rect = colEl.getBoundingClientRect()
+        if (
+          e.clientX >= rect.left && e.clientX <= rect.right &&
+          e.clientY >= rect.top  && e.clientY <= rect.bottom
+        ) {
+          overStatus = colEl.getAttribute('data-col') as TaskStatus
+          break
+        }
+      }
+
+      const insertIndex = overStatus
+        ? computeInsertIndex(overStatus, e.clientY, ref.task.id)
+        : 0
 
       const visual: DragVisual = {
         task: ref.task,
         ghostPos: { x: e.clientX - ref.offset.x, y: e.clientY - ref.offset.y },
         overStatus,
+        insertIndex,
       }
       dragVisualRef.current = visual
       setDrag(visual)
@@ -163,8 +202,35 @@ export default function KanbanBoard() {
       const ref = dragRef.current
       const visual = dragVisualRef.current
 
-      if (ref?.started && visual?.overStatus && visual.overStatus !== ref.task.status) {
-        updateStatus.mutate({ id: ref.task.id, status: visual.overStatus })
+      if (ref?.started && visual?.overStatus) {
+        const { task } = ref
+        const { overStatus, insertIndex } = visual
+
+        // Cross-column move: update status on server (optimistic handled in hook)
+        if (overStatus !== task.status) {
+          updateStatus.mutate({ id: task.id, status: overStatus })
+        }
+
+        // Apply reorder in local state
+        setColumnOrder(prev => {
+          const next = { ...prev }
+
+          if (overStatus !== task.status) {
+            // Remove from source column
+            next[task.status] = prev[task.status].filter(id => id !== task.id)
+            // Insert into target column
+            const col = [...prev[overStatus]]
+            col.splice(Math.min(insertIndex, col.length), 0, task.id)
+            next[overStatus] = col
+          } else {
+            // Same-column reorder
+            const col = prev[task.status].filter(id => id !== task.id)
+            col.splice(Math.min(insertIndex, col.length), 0, task.id)
+            next[task.status] = col
+          }
+
+          return next
+        })
       }
 
       dragRef.current = null
@@ -182,14 +248,16 @@ export default function KanbanBoard() {
     }
   }, [updateStatus])
 
+  // ── Render ────────────────────────────────────────────────────────────────
+
   if (isLoading) {
     return (
-      <div className="flex gap-5 overflow-x-auto pb-4">
-        {COLUMNS.map((c) => (
-          <div key={c.status} className="min-w-[272px] w-[272px] flex flex-col gap-3">
-            <div className="h-5 w-28 bg-stone-100 rounded animate-pulse" />
+      <div className="flex gap-4 overflow-x-auto pb-4">
+        {COLUMNS.map(c => (
+          <div key={c.status} className="min-w-[280px] w-[280px] bg-white rounded-2xl border border-stone-100 p-4 flex flex-col gap-3">
+            <div className="h-4 w-24 bg-stone-100 rounded animate-pulse" />
             <div className="h-28 bg-stone-100 rounded-xl animate-pulse" />
-            <div className="h-20 bg-stone-100 rounded-xl animate-pulse opacity-60" />
+            <div className="h-20 bg-stone-100 rounded-xl animate-pulse opacity-50" />
           </div>
         ))}
       </div>
@@ -205,26 +273,28 @@ export default function KanbanBoard() {
   }
 
   return (
-    <>
-      <div className="flex gap-5 overflow-x-auto pb-6">
-        {COLUMNS.map(({ status, label, dot, borderColor, dragBg }) => (
+    <div>
+      <div
+        className="flex gap-4 pb-6 items-start overflow-x-auto"
+        style={{ WebkitOverflowScrolling: 'touch', touchAction: 'pan-x pan-y' }}
+      >
+        {COLUMNS.map(({ status, label, color }) => (
           <KanbanColumn
             key={status}
             status={status}
             label={label}
-            dot={dot}
-            borderColor={borderColor}
-            dragBg={dragBg}
-            tasks={tasks.filter((t) => t.status === status)}
+            color={color}
+            tasks={getColumnTasks(status)}
             draggingTaskId={drag?.task.id ?? null}
             isDragTarget={drag?.overStatus === status}
+            insertIndex={drag?.overStatus === status ? drag.insertIndex : null}
             onAdd={() => setModal({ open: true, status })}
             onDragStart={handlePointerDown}
           />
         ))}
       </div>
 
-      {/* Drag ghost — fixed position, pointer-events:none so elementFromPoint sees through it */}
+      {/* Floating ghost card while dragging */}
       {drag && (
         <div
           aria-hidden
@@ -232,22 +302,23 @@ export default function KanbanBoard() {
             position: 'fixed',
             left: drag.ghostPos.x,
             top: drag.ghostPos.y,
-            width: 272,
+            width: 280,
             zIndex: 9999,
             pointerEvents: 'none',
-            transform: 'rotate(2deg)',
-            boxShadow: '0 16px 32px -8px rgba(0,0,0,0.18), 0 4px 8px -2px rgba(0,0,0,0.08)',
+            transform: 'rotate(1.5deg) scale(1.02)',
+            boxShadow: '0 20px 40px -8px rgba(0,0,0,0.18), 0 4px 12px -4px rgba(0,0,0,0.1)',
+            borderRadius: 12,
           }}
         >
-          <TaskGhost task={drag.task} />
+          <DragGhost task={drag.task} />
         </div>
       )}
 
       <CreateTaskModal
         open={modal.open}
         defaultStatus={modal.status}
-        onClose={() => setModal((prev) => ({ ...prev, open: false }))}
+        onClose={() => setModal(prev => ({ ...prev, open: false }))}
       />
-    </>
+    </div>
   )
 }

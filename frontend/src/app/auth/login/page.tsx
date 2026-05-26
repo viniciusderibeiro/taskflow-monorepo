@@ -40,7 +40,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="w-full max-w-sm">
+    <div className="w-full max-w-sm px-5">
       <div className="mb-8 flex flex-col items-center text-center">
         <div className="w-9 h-9 bg-violet-700 rounded-xl flex items-center justify-center mb-5">
           <span className="text-white text-sm font-bold tracking-tight">T</span>
