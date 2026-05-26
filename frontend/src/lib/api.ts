@@ -6,9 +6,12 @@ const api = axios.create({
 })
 
 api.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().token
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
+  const isAuthEndpoint = config.url?.startsWith('/auth/')
+  if (!isAuthEndpoint) {
+    const token = useAuthStore.getState().token
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
   }
   return config
 })
@@ -16,7 +19,8 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const isAuthEndpoint = error.config?.url?.startsWith('/auth/')
+    if (error.response?.status === 401 && !isAuthEndpoint) {
       useAuthStore.getState().logout()
       window.location.href = '/auth/login'
     }

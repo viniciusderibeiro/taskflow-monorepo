@@ -1,255 +1,232 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import type { Task, TaskStatus } from '@/types/task'
+import { createPortal } from 'react-dom'
+import type { Task, TaskStatus, TaskPriority } from '@/types/task'
 import Tag from '@/components/ui/Tag'
-import Badge from '@/components/ui/Badge'
-import { useDeleteTask, useUpdateTaskStatus, useUpdateTask } from '@/hooks/useTasks'
+import { useDeleteTask, useUpdateTaskStatus } from '@/hooks/useTasks'
+import EditTaskModal from './EditTaskModal'
 import { cn } from '@/lib/utils'
 
 interface TaskCardProps {
   task: Task
-  isDragging?: boolean
-  isGhost?: boolean
   onDragStart?: (task: Task, e: React.PointerEvent<HTMLDivElement>) => void
 }
 
+// ─── Icons ────────────────────────────────────────────────────────────────────
+
 const DotsIcon = () => (
-  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none">
-    <circle cx="12" cy="5" r="1.5" />
-    <circle cx="12" cy="12" r="1.5" />
-    <circle cx="12" cy="19" r="1.5" />
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+    <circle cx="12" cy="5" r="1.8" />
+    <circle cx="12" cy="12" r="1.8" />
+    <circle cx="12" cy="19" r="1.8" />
   </svg>
 )
 
-const CalendarIcon = () => (
-  <svg
-    width="11"
-    height="11"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth={1.5}
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <rect x="3" y="4" width="18" height="18" rx="2" />
-    <path d="M16 2v4M8 2v4M3 10h18" />
+const PencilIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
   </svg>
 )
+
+const MoveIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M5 12h14M12 5l7 7-7 7" />
+  </svg>
+)
+
+const TrashIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6" />
+    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+    <path d="M10 11v6M14 11v6" />
+    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+  </svg>
+)
+
+const FlagIcon = () => (
+  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+    <line x1="4" y1="22" x2="4" y2="15" />
+  </svg>
+)
+
+// ─── Priority badge ───────────────────────────────────────────────────────────
+
+const PRIORITY_CONFIG: Record<TaskPriority, { label: string; bg: string; text: string }> = {
+  HIGH:   { label: 'Alta',  bg: 'bg-red-50',    text: 'text-red-600'    },
+  MEDIUM: { label: 'Média', bg: 'bg-orange-50',  text: 'text-orange-600' },
+  LOW:    { label: 'Baixa', bg: 'bg-blue-50',    text: 'text-blue-600'   },
+}
+
+function PriorityBadge({ priority }: { priority: TaskPriority }) {
+  const c = PRIORITY_CONFIG[priority]
+  return (
+    <span className={cn('inline-flex items-center px-2 py-0.5 rounded-md text-xs font-semibold', c.bg, c.text)}>
+      {c.label}
+    </span>
+  )
+}
+
+// ─── Status options for "Move to" ─────────────────────────────────────────────
 
 const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
-  { value: 'BACKLOG', label: 'Backlog' },
-  { value: 'TODO', label: 'To Do' },
+  { value: 'BACKLOG',     label: 'Backlog' },
+  { value: 'TODO',        label: 'To Do' },
   { value: 'IN_PROGRESS', label: 'In Progress' },
-  { value: 'DONE', label: 'Done' },
+  { value: 'DONE',        label: 'Done' },
 ]
 
-export default function TaskCard({ task, isDragging, isGhost, onDragStart }: TaskCardProps) {
+// ─── Card ─────────────────────────────────────────────────────────────────────
+
+export default function TaskCard({ task, onDragStart }: TaskCardProps) {
   const [menuOpen, setMenuOpen] = useState(false)
-  const [editing, setEditing] = useState<'title' | 'description' | null>(null)
-  const [titleDraft, setTitleDraft] = useState(task.title)
-  const [descDraft, setDescDraft] = useState(task.description ?? '')
+  const [editOpen, setEditOpen] = useState(false)
+  const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null)
+  const dotsRef = useRef<HTMLButtonElement>(null)
 
   const deleteTask = useDeleteTask()
   const updateStatus = useUpdateTaskStatus()
-  const updateTask = useUpdateTask()
-  const titleInputRef = useRef<HTMLInputElement>(null)
-  const descInputRef = useRef<HTMLTextAreaElement>(null)
 
   const date = new Date(task.createdAt).toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: 'short',
+    year: 'numeric',
   })
 
-  function saveEdits() {
-    const newTitle = titleDraft.trim()
-    if (!newTitle) {
-      setTitleDraft(task.title)
-      setDescDraft(task.description ?? '')
-      setEditing(null)
-      return
-    }
-    const newDesc = descDraft.trim() || null
-    if (newTitle !== task.title || newDesc !== (task.description ?? null)) {
-      updateTask.mutate({
-        id: task.id,
-        title: newTitle,
-        description: newDesc,
-        status: task.status,
-        priority: task.priority,
-      })
-    }
-    setEditing(null)
-  }
-
-  function cancelEditing() {
-    setTitleDraft(task.title)
-    setDescDraft(task.description ?? '')
-    setEditing(null)
-  }
-
   function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
-    if (isGhost || editing !== null) return
-    if ((e.target as HTMLElement).closest('input, textarea, button, a')) return
+    if ((e.target as HTMLElement).closest('button, a')) return
     onDragStart?.(task, e)
   }
 
-  if (isGhost) {
-    return (
-      <div
-        className="bg-white rounded-xl border border-stone-200 p-3.5 flex flex-col gap-2.5"
-        style={{ boxShadow: '0 16px 32px -8px rgba(0,0,0,0.18), 0 4px 8px -2px rgba(0,0,0,0.08)' }}
-      >
-        <Tag status={task.status} />
-        <h3 className="text-sm font-semibold text-stone-900 line-clamp-2 leading-snug">
-          {task.title}
-        </h3>
-        {task.description && (
-          <p className="text-xs text-stone-500 line-clamp-2 leading-relaxed">{task.description}</p>
-        )}
-        <div className="flex items-center justify-between pt-0.5 border-t border-stone-100">
-          <div className="flex items-center gap-1.5 text-xs text-stone-400">
-            <CalendarIcon />
-            <span>{date}</span>
-          </div>
-          <Badge priority={task.priority} />
-        </div>
-      </div>
-    )
+  function handleDotsClick(e: React.MouseEvent) {
+    e.stopPropagation()
+    if (!menuOpen && dotsRef.current) {
+      const rect = dotsRef.current.getBoundingClientRect()
+      setMenuPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right })
+    }
+    setMenuOpen(p => !p)
+  }
+
+  function closeMenu() {
+    setMenuOpen(false)
+    setMenuPos(null)
   }
 
   return (
-    <div
-      onPointerDown={handlePointerDown}
-      className={cn(
-        'bg-white rounded-xl border border-stone-200 p-3.5 flex flex-col gap-2.5 group select-none',
-        'transition-all duration-[120ms]',
-        isDragging ? 'opacity-40 scale-[0.98]' : 'cursor-grab hover:cursor-grab active:cursor-grabbing',
-        !isDragging && 'hover:shadow-[var(--shadow-card-hover)]'
-      )}
-      style={{ boxShadow: isDragging ? 'none' : 'var(--shadow-card)' }}
-    >
-      {/* Header */}
-      <div className="flex items-center justify-between gap-2">
-        <Tag status={task.status} />
-        <div className="relative">
-          <button
-            onPointerDown={(e) => e.stopPropagation()}
-            onClick={(e) => {
-              e.stopPropagation()
-              setMenuOpen((p) => !p)
-            }}
-            aria-label="Opções da tarefa"
-            className="w-6 h-6 rounded flex items-center justify-center text-stone-300 hover:text-stone-600 hover:bg-stone-100 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
-          >
-            <DotsIcon />
-          </button>
-          {menuOpen && (
-            <>
-              <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-              <div
-                className="absolute right-0 top-7 z-20 bg-white border border-stone-200 rounded-xl py-1 w-44"
-                style={{ boxShadow: 'var(--shadow-modal)' }}
-              >
-                <p className="px-3 pt-1 pb-1.5 text-xs font-semibold text-stone-400 uppercase tracking-wide">
-                  Mover para
-                </p>
-                {STATUS_OPTIONS.filter((s) => s.value !== task.status).map((s) => (
-                  <button
-                    key={s.value}
-                    onClick={() => {
-                      updateStatus.mutate({ id: task.id, status: s.value })
-                      setMenuOpen(false)
-                    }}
-                    className="w-full text-left px-3 py-1.5 text-sm text-stone-700 hover:bg-stone-50 transition-colors cursor-pointer"
-                  >
-                    {s.label}
-                  </button>
-                ))}
-                <hr className="my-1 border-stone-100" />
-                <button
-                  onClick={() => {
-                    deleteTask.mutate(task.id)
-                    setMenuOpen(false)
-                  }}
-                  disabled={deleteTask.isPending}
-                  className="w-full text-left px-3 py-1.5 text-sm text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50 cursor-pointer"
-                >
-                  Excluir
-                </button>
-              </div>
-            </>
+    <>
+      <div
+        data-card={task.id}
+        onPointerDown={handlePointerDown}
+        className={cn(
+          'bg-white rounded-xl border border-stone-100 select-none group',
+          'shadow-[0_1px_4px_rgba(0,0,0,0.05)]',
+          'hover:shadow-[0_4px_16px_rgba(0,0,0,0.09)] hover:border-stone-200',
+          'transition-all duration-150 cursor-grab active:cursor-grabbing'
+        )}
+      >
+        {/* ── Card body ── */}
+        <div className="px-4 pt-4 pb-3">
+          {/* Top row: status tag + menu */}
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <Tag status={task.status} />
+
+            {/* Context menu trigger */}
+            <button
+              ref={dotsRef}
+              onPointerDown={e => e.stopPropagation()}
+              onClick={handleDotsClick}
+              aria-label="Opções da tarefa"
+              className="w-7 h-7 rounded-lg flex items-center justify-center text-stone-300 hover:text-stone-600 hover:bg-stone-100 transition-colors cursor-pointer"
+            >
+              <DotsIcon />
+            </button>
+          </div>
+
+          {/* Title */}
+          <h3 className="text-[15px] font-semibold text-stone-900 leading-snug line-clamp-2 mb-1.5">
+            {task.title}
+          </h3>
+
+          {/* Description */}
+          {task.description && (
+            <p className="text-sm text-stone-400 leading-relaxed line-clamp-2">
+              {task.description}
+            </p>
           )}
         </div>
-      </div>
 
-      {/* Title — double-click to edit */}
-      {editing === 'title' ? (
-        <input
-          ref={titleInputRef}
-          autoFocus
-          value={titleDraft}
-          onChange={(e) => setTitleDraft(e.target.value)}
-          onBlur={saveEdits}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') { e.preventDefault(); saveEdits() }
-            if (e.key === 'Escape') cancelEditing()
-          }}
-          onPointerDown={(e) => e.stopPropagation()}
-          className="w-full text-sm font-semibold text-stone-900 bg-transparent border-b-2 border-violet-400 focus:outline-none pb-0.5 select-text"
-        />
-      ) : (
-        <h3
-          className="text-sm font-semibold text-stone-900 line-clamp-2 leading-snug select-text cursor-text"
-          onDoubleClick={() => setEditing('title')}
-          title="Clique duplo para editar"
-        >
-          {task.title}
-        </h3>
-      )}
-
-      {/* Description — double-click to edit */}
-      {editing === 'description' ? (
-        <textarea
-          ref={descInputRef}
-          autoFocus
-          value={descDraft}
-          onChange={(e) => setDescDraft(e.target.value)}
-          onBlur={saveEdits}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') cancelEditing()
-            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') saveEdits()
-          }}
-          onPointerDown={(e) => e.stopPropagation()}
-          rows={2}
-          className="w-full text-xs text-stone-500 bg-transparent border-b-2 border-violet-400 focus:outline-none resize-none leading-relaxed select-text"
-        />
-      ) : task.description ? (
-        <p
-          className="text-xs text-stone-500 line-clamp-2 leading-relaxed select-text cursor-text"
-          onDoubleClick={() => setEditing('description')}
-          title="Clique duplo para editar"
-        >
-          {task.description}
-        </p>
-      ) : (
-        <p
-          className="text-xs text-stone-400 italic select-text cursor-text"
-          onDoubleClick={() => setEditing('description')}
-        >
-          Adicionar descrição...
-        </p>
-      )}
-
-      {/* Meta */}
-      <div className="flex items-center justify-between pt-0.5 border-t border-stone-100">
-        <div className="flex items-center gap-1.5 text-xs text-stone-400">
-          <CalendarIcon />
-          <span>{date}</span>
+        {/* ── Footer ── */}
+        <div className="px-4 py-2.5 border-t border-stone-100 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 text-xs text-stone-400">
+            <FlagIcon />
+            <span>{date}</span>
+          </div>
+          <PriorityBadge priority={task.priority} />
         </div>
-        <Badge priority={task.priority} />
       </div>
-    </div>
+
+      {/* Context menu rendered via portal so it escapes all overflow ancestors */}
+      {menuOpen && menuPos && createPortal(
+        <>
+          <div className="fixed inset-0 z-40" onClick={closeMenu} />
+          <div
+            className="bg-white border border-stone-200 rounded-xl py-1.5 w-52 overflow-hidden"
+            style={{
+              position: 'fixed',
+              top: menuPos.top,
+              right: menuPos.right,
+              zIndex: 50,
+              boxShadow: '0 8px 24px -4px rgba(0,0,0,0.12), 0 2px 8px -2px rgba(0,0,0,0.08)',
+            }}
+          >
+            <button
+              onClick={() => { closeMenu(); setEditOpen(true) }}
+              className="w-full text-left px-3.5 py-2 text-sm text-stone-700 hover:bg-stone-50 flex items-center gap-3 cursor-pointer transition-colors"
+            >
+              <span className="text-stone-400"><PencilIcon /></span>
+              Editar
+            </button>
+
+            <div className="h-px bg-stone-100 mx-2 my-1" />
+
+            <p className="px-3.5 pt-0.5 pb-1 text-[10px] font-bold text-stone-400 uppercase tracking-widest">
+              Mover para
+            </p>
+            {STATUS_OPTIONS.filter(s => s.value !== task.status).map(s => (
+              <button
+                key={s.value}
+                onClick={() => { updateStatus.mutate({ id: task.id, status: s.value }); closeMenu() }}
+                className="w-full text-left px-3.5 py-2 text-sm text-stone-700 hover:bg-stone-50 flex items-center gap-3 cursor-pointer transition-colors"
+              >
+                <span className="text-stone-400"><MoveIcon /></span>
+                {s.label}
+              </button>
+            ))}
+
+            <div className="h-px bg-stone-100 mx-2 my-1" />
+
+            <button
+              onClick={() => { deleteTask.mutate(task.id); closeMenu() }}
+              disabled={deleteTask.isPending}
+              className="w-full text-left px-3.5 py-2 text-sm text-red-500 hover:bg-red-50 flex items-center gap-3 disabled:opacity-50 cursor-pointer transition-colors"
+            >
+              <TrashIcon />
+              Excluir
+            </button>
+          </div>
+        </>,
+        document.body
+      )}
+
+      {editOpen && (
+        <EditTaskModal
+          open={editOpen}
+          task={task}
+          onClose={() => setEditOpen(false)}
+        />
+      )}
+    </>
   )
 }

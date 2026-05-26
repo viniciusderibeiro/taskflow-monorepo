@@ -1,7 +1,5 @@
 @AGENTS.md
 
-
-
 # Projeto Kanban Frontend
  
 > Documento mestre de contexto, diretrizes e regras para o Claude atuar como **Senior Frontend Engineer + Product Designer** neste projeto. Leia **antes** de qualquer geração de código.
