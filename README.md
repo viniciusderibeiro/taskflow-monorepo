@@ -1,6 +1,6 @@
 <div align="center">
 
-# TaskFlow
+# TaskFlow - Kanban
 
 ### Gestão de tarefas Kanban, fullstack e conteinerizada — da ideia ao deploy.
 
@@ -29,7 +29,6 @@ Planilhas viram bagunça, conversas em chat se perdem, e o resultado é retrabal
 - Entregar uma aplicação **fullstack funcional** seguindo práticas reais de mercado.
 - Aplicar **metodologias ágeis** (Kanban + GitHub Projects) na própria construção do produto.
 - Demonstrar domínio sobre **versionamento, CI/CD, conteinerização e arquitetura em camadas**.
-- Garantir que qualquer pessoa consiga subir o projeto inteiro com **um único comando**.
 
 ---
 
@@ -132,7 +131,6 @@ Após o build, os serviços estarão disponíveis em:
 | ⚙️ Backend API  | `http://localhost:8080`                       |
 | 📚 Swagger UI   | `http://localhost:8080/swagger-ui.html`       |
 | 🗄️ PostgreSQL   | `localhost:5432`                              |
-| ⚡ Redis        | `localhost:6379`                              |
 
 ### Opção 2 — Execução Manual (Local)
 
@@ -179,7 +177,7 @@ REDIS_HOST=localhost
 REDIS_PORT=6379
 
 # === Frontend ===
-NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
+NEXT_PUBLIC_API_URL=http://localhost:8080
 ```
 
 > ⚠️ **Atenção:** nunca commite o arquivo `.env` com credenciais reais. O `.gitignore` já está configurado para ignorá-lo.
@@ -203,15 +201,17 @@ Após subir a aplicação, acesse `http://localhost:3000` no navegador e:
 
 > Documentação completa e interativa disponível em `/swagger-ui.html`
 
-| Método   | Rota                       | Descrição                              |
-| -------- | -------------------------- | -------------------------------------- |
-| `POST`   | `/api/v1/auth/register`    | Cria um novo usuário.                  |
-| `POST`   | `/api/v1/auth/login`       | Autentica e retorna o token JWT.       |
-| `GET`    | `/api/v1/users/me`         | Retorna dados do usuário logado.       |
-| `GET`    | `/api/v1/boards`           | Lista os boards do usuário.            |
-| `POST`   | `/api/v1/boards/{id}/tasks`| Cria uma nova tarefa no board.         |
-| `PATCH`  | `/api/v1/tasks/{id}/status`| Atualiza o status de uma tarefa.       |
-| `DELETE` | `/api/v1/tasks/{id}`       | Remove uma tarefa.                     |
+| Método   | Rota                       | Descrição                                     |
+| -------- | -------------------------- | --------------------------------------------- |
+| `POST`   | `/auth/register`           | Cadastrar um novo usuário.                    |
+| `POST`   | `/auth/login`              | Autentica e retorna o token JWT.              |
+| `GET`    | `/tasks`                   | Listar todas as tarefas do usuário.           |
+| `POST`   | `/tasks`                   | Criar uma nova tarefa.                        |
+| `GET`    | `/tasks/{id}`              | Buscar uma tarefa específica por ID.          |
+| `PUT`    | `/tasks/{id}`              | Atualizar uma tarefa (dados completos).       |
+| `PATCH`  | `/tasks/{id}/status`       | tualizar apenas o status de uma tarefa.       |
+| `PATCH`  | `/tasks/{id}/priority`     | Atualizar apenas a prioridade de uma tarefa.  |
+| `DELETE` | `/tasks/{id}`              | Remove uma tarefa.                            |
 
 ---
 
@@ -298,7 +298,7 @@ Este projeto segue o [Conventional Commits](https://www.conventionalcommits.org/
 | `test:`     | Adição ou ajuste de testes.                      |
 | `chore:`    | Tarefas de manutenção (build, deps, etc.).       |
 
-> ✅ Toda PR passa pelo CI antes de ser elegível para merge. Builds quebrados não são aceitos na `main`.
+> Toda PR passa pelo CI antes de ser elegível para merge. Builds quebrados não são aceitos na `main`.
 
 ---
 
