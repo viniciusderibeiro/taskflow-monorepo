@@ -12,7 +12,7 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 
-[**🌐 Demo**](https://taskflow-go.vercel.app) · [**🐛 Issues**](https://github.com/viniciusderibeiro/taskflow-monorepo/issues)
+[**Issues - Propostas de melhorias**](https://github.com/viniciusderibeiro/taskflow-monorepo/issues)
 
 </div>
 
@@ -193,9 +193,6 @@ Após subir a aplicação, acesse `http://localhost:3000` no navegador e:
 3. **Crie tarefas** clicando em `+ Nova Tarefa`.
 4. **Arraste e solte** entre as colunas **To Do → Doing → Done**.
 5. **Edite ou exclua** tarefas a qualquer momento.
-
-![Demonstração da Tela do Board](docs/images/board-demo.png)
-![Demonstração da Tela de Login](docs/images/login-demo.png)
 
 ### 🌐 Principais Endpoints da API
 
