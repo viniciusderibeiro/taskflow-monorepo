@@ -42,11 +42,11 @@ O TaskFlow segue uma arquitetura em **três camadas claramente separadas**, orga
 
 | Tecnologia        | Função                                                                                          |
 | ----------------- | ----------------------------------------------------------------------------------------------- |
-| **Next.js 14**    | Framework React principal — roteamento, SSR/SSG, otimização de performance e SEO.               |
-| **TypeScript**    | Tipagem estática sobre o JavaScript — autocompletar e prevenção de bugs em tempo de compilação. |
+| **Next.js 14**    | Framework React principal roteamento, SSR/SSG, otimização de performance e SEO.                 |
+| **TypeScript**    | Tipagem estática sobre o JavaScript autocompletar e prevenção de bugs em tempo de compilação.   |
 | **Tailwind CSS**  | Estilização utility-first para telas responsivas e consistentes em ritmo acelerado.             |
 | **Zustand**       | Gerenciamento de estado global leve e sem boilerplate (ex: dados do usuário logado).            |
-| **Zod**           | Validação de schemas em runtime — garante a integridade de dados de formulários e APIs.         |
+| **Zod**           | Validação de schemas em runtime garante a integridade de dados de formulários e APIs.           |
 | **Axios**         | Cliente HTTP para consumo da API REST do backend.                                               |
 | **TanStack Query**| Cache, sincronização e refetch automático dos dados servidor ↔ UI.                              |
 | **React Markdown**| Componente React para renderizar textos e conteúdos em formato Markdown de forma segura.        |
@@ -60,9 +60,9 @@ O TaskFlow segue uma arquitetura em **três camadas claramente separadas**, orga
 | Tecnologia                    | Função                                                                                       |
 | ----------------------------- | -------------------------------------------------------------------------------------------- |
 | **Spring Boot Web**           | Criação dos endpoints REST e tratamento das requisições HTTP.                                |
-| **Spring Data JPA**           | ORM que abstrai o acesso ao banco — persistência sem SQL manual.                             |
+| **Spring Data JPA**           | ORM que abstrai o acesso ao banco persistência sem SQL manual.                               |
 | **PostgreSQL**                | Banco de dados relacional principal.                                                         |
-| **Spring Validation**         | Validação declarativa de DTOs (`@NotNull`, `@Email`, `@Size`, etc.).                          |
+| **Spring Validation**         | Validação declarativa de DTOs (`@NotNull`, `@Email`, `@Size`, etc.).                         |
 | **Springdoc OpenAPI (Swagger)** | Geração automática da documentação interativa da API.                                      |
 | **Spring Security + JWT**     | Autenticação stateless via tokens JWT e controle de autorização por rota.                    |
 | **Lombok**                    | Reduz boilerplate (`@Getter`, `@Setter`, `@Builder`, etc.).                                  |
