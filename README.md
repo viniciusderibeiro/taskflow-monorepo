@@ -34,14 +34,7 @@ Planilhas viram bagunça, conversas em chat se perdem, e o resultado é retrabal
 
 ## 🛠️ Arquitetura e Tecnologias
 
-O TaskFlow segue uma arquitetura em **três camadas claramente separadas**, organizadas em um único repositório (monorepo) para facilitar o desenvolvimento cruzado entre front e back.
-
-```
-┌─────────────┐                ┌─────────────┐            ┌──────────────┐
-    Cliente     ─────────────▶    Backend     ─────────▶    PostgreSQL   
-   (Next.js)    ◀─────────────  (Spring API)  ◀─────────     (Neon DB)   
-└─────────────┘                └─────────────┘            └──────────────┘
-```
+O TaskFlow segue uma arquitetura em **três camadas claramente separadas**, organizadas em um único repositório (monorepo) e o banco de dados para facilitar o desenvolvimento cruzado entre front e back.
 
 ### 🎨 Frontend
 
@@ -56,6 +49,9 @@ O TaskFlow segue uma arquitetura em **três camadas claramente separadas**, orga
 | **Zod**           | Validação de schemas em runtime — garante a integridade de dados de formulários e APIs.         |
 | **Axios**         | Cliente HTTP para consumo da API REST do backend.                                               |
 | **TanStack Query**| Cache, sincronização e refetch automático dos dados servidor ↔ UI.                              |
+| **React Markdown**| Componente React para renderizar textos e conteúdos em formato Markdown de forma segura.        |
+| **Remark GFM**    | Plugin do React Markdown que adiciona suporte a tabelas, links automáticos e checklists.        |
+| **Lucide React**  | Pacote de ícones em vetor (SVG) limpos, modernos e fáceis de customizar via props.              |
 
 ### ⚙️ Backend
 
