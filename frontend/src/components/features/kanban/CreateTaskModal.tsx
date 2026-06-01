@@ -55,7 +55,7 @@ export default function CreateTaskModal({ open, defaultStatus, onClose }: Create
   async function onSubmit(data: FormData) {
     await createTask.mutateAsync({
       title: data.title,
-      description: data.description || undefined,
+      description: data.description?.slice(0, 500) || undefined,
       status: defaultStatus,
       priority: data.priority,
     })
