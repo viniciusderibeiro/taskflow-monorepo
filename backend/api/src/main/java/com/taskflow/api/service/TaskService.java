@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.taskflow.api.dto.request.CreateTaskRequest;
+import com.taskflow.api.dto.request.UpdateTaskRequest;
 import com.taskflow.api.model.Task;
 import com.taskflow.api.model.User;
 import com.taskflow.api.model.enums.TaskPriority;
@@ -30,17 +32,22 @@ public class TaskService {
                         HttpStatus.NOT_FOUND, "Tarefa não encontrada"));
     }
 
-    public Task save(Task task, User user) {
+    public Task save(CreateTaskRequest request, User user) {
+        Task task = new Task();
+        task.setTitle(request.title());
+        task.setDescription(request.description());
+        task.setStatus(request.status());
+        task.setPriority(request.priority());
         task.setUser(user);
         return taskRepository.save(task);
     }
 
-    public Task update(Long id, Task taskData, User user) {
+    public Task update(Long id, UpdateTaskRequest request, User user) {
         Task task = findById(id, user);
-        task.setTitle(taskData.getTitle());
-        task.setDescription(taskData.getDescription());
-        task.setPriority(taskData.getPriority());
-        task.setStatus(taskData.getStatus());
+        task.setTitle(request.title());
+        task.setDescription(request.description());
+        task.setPriority(request.priority());
+        task.setStatus(request.status());
         return taskRepository.save(task);
     }
 
@@ -60,5 +67,4 @@ public class TaskService {
         Task task = findById(id, user);
         taskRepository.delete(task);
     }
-
 }

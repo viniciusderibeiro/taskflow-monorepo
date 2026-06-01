@@ -75,7 +75,7 @@ export default function EditTaskModal({ open, task, onClose }: EditTaskModalProp
       await updateTask.mutateAsync({
         id: task.id,
         title: data.title,
-        description: data.description || null,
+        description: data.description?.slice(0, 500) || null,
         status: data.status,
         priority: data.priority,
       })

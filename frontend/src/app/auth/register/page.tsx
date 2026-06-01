@@ -75,6 +75,10 @@ export default function RegisterPage() {
           autoComplete="email"
           className="h-11"
           error={errors.email?.message}
+          onChange={(e) => {
+            e.target.value = e.target.value.toLowerCase()
+            register('email').onChange(e)
+          }}
         />
 
         <PasswordInput

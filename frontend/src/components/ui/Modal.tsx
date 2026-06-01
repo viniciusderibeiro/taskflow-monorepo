@@ -27,6 +27,7 @@ const XIcon = () => (
 
 export default function Modal({ isOpen, onClose, title, children, size = 'md', titleClassName }: ModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null)
+  const mouseDownOnBackdrop = useRef(false)
 
   useEffect(() => {
     if (!isOpen) return
@@ -45,7 +46,8 @@ export default function Modal({ isOpen, onClose, title, children, size = 'md', t
     <div
       ref={overlayRef}
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      onClick={(e) => e.target === overlayRef.current && onClose()}
+      onMouseDown={(e) => { mouseDownOnBackdrop.current = e.target === overlayRef.current }}
+      onClick={(e) => { if (mouseDownOnBackdrop.current && e.target === overlayRef.current) onClose() }}
     >
       <div className="absolute inset-0 bg-stone-900/40" />
       <div

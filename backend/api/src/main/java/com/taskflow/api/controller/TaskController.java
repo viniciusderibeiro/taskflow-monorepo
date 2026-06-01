@@ -13,11 +13,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.taskflow.api.dto.request.CreateTaskRequest;
 import com.taskflow.api.dto.request.UpdatePriorityRequest;
 import com.taskflow.api.dto.request.UpdateStatusRequest;
+import com.taskflow.api.dto.request.UpdateTaskRequest;
 import com.taskflow.api.model.Task;
 import com.taskflow.api.model.User;
 import com.taskflow.api.service.TaskService;
+import jakarta.validation.Valid;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -71,8 +74,8 @@ public class TaskController {
             @ApiResponse(responseCode = "400", description = "Dados inválidos")
     })
     @PostMapping
-    public Task save(@RequestBody Task task, @AuthenticationPrincipal User user) {
-        return taskService.save(task, user);
+    public Task save(@Valid @RequestBody CreateTaskRequest request, @AuthenticationPrincipal User user) {
+        return taskService.save(request, user);
     }
 
     @Operation(summary = "Atualizar tarefa", description = "Atualiza título, descrição, status e prioridade de uma tarefa", requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(examples = @ExampleObject(value = """
@@ -90,9 +93,9 @@ public class TaskController {
             @ApiResponse(responseCode = "404", description = "Tarefa não encontrada")
     })
     @PutMapping("/{id}")
-    public Task update(@PathVariable Long id, @RequestBody Task task,
+    public Task update(@PathVariable Long id, @Valid @RequestBody UpdateTaskRequest request,
             @AuthenticationPrincipal User user) {
-        return taskService.update(id, task, user);
+        return taskService.update(id, request, user);
     }
 
     @Operation(summary = "Atualizar prioridade", description = "Atualiza apenas a prioridade da tarefa. Valores aceitos: LOW, MEDIUM, HIGH", requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(examples = @ExampleObject(value = """

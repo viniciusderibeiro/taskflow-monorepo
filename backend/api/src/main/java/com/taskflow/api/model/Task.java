@@ -39,6 +39,7 @@ public class Task {
     @Column(nullable = false)
     private String title;
 
+    @Column(length = 500)
     private String description;
 
     @Enumerated(EnumType.STRING)
