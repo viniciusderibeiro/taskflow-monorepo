@@ -44,7 +44,7 @@ interface DragVisual {
 
 const PRIO_STYLES: Record<TaskPriority, { dot: string; text: string; label: string }> = {
   HIGH:   { dot: 'bg-red-500',    text: 'text-red-600',    label: 'Alta' },
-  MEDIUM: { dot: 'bg-orange-400', text: 'text-orange-500', label: 'Média' },
+  MEDIUM: { dot: 'bg-amber-400',  text: 'text-amber-500',  label: 'Média' },
   LOW:    { dot: 'bg-blue-400',   text: 'text-blue-500',   label: 'Baixa' },
 }
 
@@ -91,6 +91,7 @@ export default function KanbanBoard({ search = '', priorityFilter = 'ALL' }: Kan
   // order is preserved so in-session reordering survives refetches.
   useEffect(() => {
     if (isLoading) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setColumnOrder(prev => {
       const next = { ...prev }
       for (const status of STATUSES) {

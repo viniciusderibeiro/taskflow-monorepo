@@ -1,0 +1,25 @@
+interface LogoProps {
+  size?: number
+  className?: string
+}
+
+export default function Logo({ size = 24, className }: LogoProps) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 58 58"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-label="TaskFlow"
+      className={className}
+    >
+      <rect x="2" y="2" width="54" height="54" rx="6" fill="#1C1917" />
+      <rect x="2" y="2" width="54" height="54" rx="6" stroke="white" strokeWidth="4" />
+      <rect x="10" y="10" width="8.66667" height="38" rx="4.33333" fill="#FFB900" />
+      <rect x="24.6667" y="10" width="8.66667" height="28.5" rx="4.33333" fill="#2B7FFF" />
+      <rect x="39.3333" y="10" width="8.66667" height="19" rx="4.33333" fill="#00BC7D" />
+      <path d="M36.2445 45.5153C41.3338 48.1714 46.7408 45.2679 46.4726 39.9007" stroke="white" strokeWidth="3.5" strokeLinecap="round" />
+    </svg>
+  )
+}

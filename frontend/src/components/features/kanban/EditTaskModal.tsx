@@ -9,6 +9,8 @@ import { useUpdateTask } from '@/hooks/useTasks'
 import Modal from '@/components/ui/Modal'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
+import MarkdownEditor from '@/components/ui/MarkdownEditor'
+import { cn } from '@/lib/utils'
 
 interface EditTaskModalProps {
   open: boolean
@@ -32,10 +34,19 @@ const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
   { value: 'DONE', label: 'Done' },
 ]
 
+const TITLE_MAX = 100
+
 export default function EditTaskModal({ open, task, onClose }: EditTaskModalProps) {
   const updateTask = useUpdateTask()
 
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    watch,
+    setValue,
+  } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
       title: task.title,
@@ -56,6 +67,9 @@ export default function EditTaskModal({ open, task, onClose }: EditTaskModalProp
     }
   }, [open, task, reset])
 
+  const titleValue = watch('title') ?? ''
+  const descriptionValue = watch('description') ?? ''
+
   async function onSubmit(data: FormData) {
     try {
       await updateTask.mutateAsync({
@@ -74,24 +88,42 @@ export default function EditTaskModal({ open, task, onClose }: EditTaskModalProp
   return (
     <Modal isOpen={open} onClose={onClose} title="Editar tarefa">
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-        <Input
-          {...register('title')}
-          label="Título"
-          placeholder="Descreva a tarefa em poucas palavras"
-          autoFocus
-          error={errors.title?.message}
-        />
-
-        <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium text-stone-700">Descrição</label>
-          <textarea
-            {...register('description')}
-            placeholder="Detalhes opcionais sobre esta tarefa"
-            rows={3}
-            className="w-full rounded-lg border border-stone-200 bg-white px-3 py-2 text-sm text-stone-900 placeholder:text-stone-400 resize-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-700 focus-visible:border-transparent transition-shadow"
+        {/* Title */}
+        <div className="flex flex-col gap-1">
+          <label className="text-sm font-medium text-stone-700">Título</label>
+          <Input
+            {...register('title')}
+            placeholder="Descreva a tarefa em poucas palavras"
+            autoFocus
+            error={errors.title?.message}
+            maxLength={TITLE_MAX}
           />
+          <div className="flex justify-end">
+            <span className={cn('text-xs tabular-nums', titleValue.length > 90 ? 'text-orange-500' : 'text-stone-400')}>
+              {titleValue.length}/{TITLE_MAX}
+            </span>
+          </div>
         </div>
 
+        {/* Description — markdown editor */}
+        <div className="flex flex-col gap-1">
+          <label className="text-sm font-medium text-stone-700">Descrição</label>
+          <MarkdownEditor
+            value={descriptionValue}
+            onChange={v => setValue('description', v, { shouldValidate: true })}
+            maxLength={500}
+            placeholder="Descrição opicional."
+            error={errors.description?.message}
+            rows={6}
+          />
+          <div className="flex justify-end">
+            <span className={cn('text-xs tabular-nums', descriptionValue.length > 425 ? 'text-orange-500' : 'text-stone-400')}>
+              {descriptionValue.length}/500
+            </span>
+          </div>
+        </div>
+
+        {/* Status + Priority */}
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1.5">
             <label className="text-sm font-medium text-stone-700">Status</label>

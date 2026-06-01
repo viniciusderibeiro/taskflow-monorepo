@@ -10,6 +10,7 @@ import { useAuthStore } from '@/store/authStore'
 import type { AuthState } from '@/store/authStore'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
+import PasswordInput from '@/components/ui/PasswordInput'
 
 const schema = z.object({
   email: z.string().email('Email inválido'),
@@ -40,50 +41,52 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="w-full max-w-sm px-5">
-      <div className="mb-8 flex flex-col items-center text-center">
-        <div className="w-9 h-9 bg-violet-700 rounded-xl flex items-center justify-center mb-5">
-          <span className="text-white text-sm font-bold tracking-tight">T</span>
-        </div>
-        <h1 className="text-xl font-semibold text-stone-900">Entrar no TaskFlow</h1>
-        <p className="text-sm text-stone-500 mt-1">Bem-vindo de volta.</p>
+    <div className="flex flex-col items-center w-full">
+      {/* Heading */}
+      <div className="mb-8 text-center">
+        <h1 className="text-[34px] font-bold text-stone-900 leading-tight tracking-tight">
+          Olá,<br />Bem-vindo de volta.
+        </h1>
+        <p className="text-sm text-stone-400 mt-2.5">Entre na sua conta para continuar.</p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3">
+      {/* Form */}
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3.5 w-full">
         <Input
           {...register('email')}
           label="Email"
           type="email"
           placeholder="voce@exemplo.com"
           autoComplete="email"
+          className="h-11"
           error={errors.email?.message}
         />
 
-        <Input
+        <PasswordInput
           {...register('password')}
           label="Senha"
-          type="password"
           placeholder="••••••••"
           autoComplete="current-password"
           error={errors.password?.message}
         />
 
         {errors.root && (
-          <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+          <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-center">
             {errors.root.message}
           </p>
         )}
 
-        <Button type="submit" size="lg" loading={isSubmitting} className="w-full mt-1">
+        <Button type="submit" size="lg" loading={isSubmitting} className="w-full mt-2 h-11">
           Entrar
         </Button>
       </form>
 
-      <p className="text-center text-xs text-stone-500 mt-6">
+      {/* Footer */}
+      <p className="text-sm text-stone-500 mt-8 text-center">
         Não tem uma conta?{' '}
         <Link
           href="/auth/register"
-          className="font-medium text-violet-700 hover:text-violet-800 transition-colors"
+          className="font-semibold text-violet-700 hover:text-violet-800 transition-colors"
         >
           Criar conta
         </Link>

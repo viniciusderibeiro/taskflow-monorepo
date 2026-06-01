@@ -1,11 +1,14 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { createPortal } from 'react-dom'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import type { Task, TaskStatus, TaskPriority } from '@/types/task'
 import Tag from '@/components/ui/Tag'
 import { useDeleteTask, useUpdateTaskStatus } from '@/hooks/useTasks'
 import EditTaskModal from './EditTaskModal'
+import TaskViewModal from './TaskViewModal'
 import { cn } from '@/lib/utils'
 
 interface TaskCardProps {
@@ -55,9 +58,9 @@ const FlagIcon = () => (
 // ─── Priority badge ───────────────────────────────────────────────────────────
 
 const PRIORITY_CONFIG: Record<TaskPriority, { label: string; bg: string; text: string }> = {
-  HIGH:   { label: 'Alta',  bg: 'bg-red-50',    text: 'text-red-600'    },
-  MEDIUM: { label: 'Média', bg: 'bg-orange-50',  text: 'text-orange-600' },
-  LOW:    { label: 'Baixa', bg: 'bg-blue-50',    text: 'text-blue-600'   },
+  HIGH:   { label: 'Alta',  bg: 'bg-red-50',   text: 'text-red-600'   },
+  MEDIUM: { label: 'Média', bg: 'bg-amber-50',  text: 'text-amber-500' },
+  LOW:    { label: 'Baixa', bg: 'bg-blue-50',   text: 'text-blue-600'  },
 }
 
 function PriorityBadge({ priority }: { priority: TaskPriority }) {
@@ -67,6 +70,27 @@ function PriorityBadge({ priority }: { priority: TaskPriority }) {
       {c.label}
     </span>
   )
+}
+
+// ─── Inline markdown renderer for card preview ────────────────────────────────
+// All elements are rendered as inline spans so line-clamp-2 works on the wrapper
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const INLINE_MD: Record<string, (props: any) => React.ReactElement> = {
+  h1: ({ children }) => <span className="font-bold">{children} </span>,
+  h2: ({ children }) => <span className="font-semibold">{children} </span>,
+  h3: ({ children }) => <span className="font-semibold">{children} </span>,
+  h4: ({ children }) => <span className="font-medium">{children} </span>,
+  p:  ({ children }) => <span>{children} </span>,
+  strong: ({ children }) => <span className="font-semibold">{children}</span>,
+  em: ({ children }) => <em>{children}</em>,
+  code: ({ children }) => <span className="font-mono text-[11px]">{children}</span>,
+  li: ({ children }) => <span>{children} </span>,
+  ul: ({ children }) => <span>{children}</span>,
+  ol: ({ children }) => <span>{children}</span>,
+  blockquote: ({ children }) => <span className="italic">{children}</span>,
+  a: ({ children }) => <span>{children}</span>,
+  hr: () => <span> — </span>,
 }
 
 // ─── Status options for "Move to" ─────────────────────────────────────────────
@@ -82,9 +106,10 @@ const STATUS_OPTIONS: { value: TaskStatus; label: string }[] = [
 
 export default function TaskCard({ task, onDragStart }: TaskCardProps) {
   const [menuOpen, setMenuOpen] = useState(false)
-  const [editOpen, setEditOpen] = useState(false)
   const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null)
-  const dotsRef = useRef<HTMLButtonElement>(null)
+  const [viewOpen, setViewOpen] = useState(false)
+  const [editOpen, setEditOpen] = useState(false)
+  const dotsRef = React.useRef<HTMLButtonElement>(null)
 
   const deleteTask = useDeleteTask()
   const updateStatus = useUpdateTaskStatus()
@@ -98,6 +123,11 @@ export default function TaskCard({ task, onDragStart }: TaskCardProps) {
   function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
     if ((e.target as HTMLElement).closest('button, a')) return
     onDragStart?.(task, e)
+  }
+
+  function handleCardClick(e: React.MouseEvent<HTMLDivElement>) {
+    if ((e.target as HTMLElement).closest('button, a')) return
+    setViewOpen(true)
   }
 
   function handleDotsClick(e: React.MouseEvent) {
@@ -119,11 +149,12 @@ export default function TaskCard({ task, onDragStart }: TaskCardProps) {
       <div
         data-card={task.id}
         onPointerDown={handlePointerDown}
+        onClick={handleCardClick}
         className={cn(
           'bg-white rounded-xl border border-stone-100 select-none group',
           'shadow-[0_1px_4px_rgba(0,0,0,0.05)]',
           'hover:shadow-[0_4px_16px_rgba(0,0,0,0.09)] hover:border-stone-200',
-          'transition-all duration-150 cursor-grab active:cursor-grabbing'
+          'transition-all duration-150 cursor-pointer'
         )}
       >
         {/* ── Card body ── */}
@@ -131,8 +162,6 @@ export default function TaskCard({ task, onDragStart }: TaskCardProps) {
           {/* Top row: status tag + menu */}
           <div className="flex items-center justify-between gap-2 mb-3">
             <Tag status={task.status} />
-
-            {/* Context menu trigger */}
             <button
               ref={dotsRef}
               onPointerDown={e => e.stopPropagation()}
@@ -149,11 +178,13 @@ export default function TaskCard({ task, onDragStart }: TaskCardProps) {
             {task.title}
           </h3>
 
-          {/* Description */}
+          {/* Description — inline markdown, clamped to 2 lines */}
           {task.description && (
-            <p className="text-sm text-stone-400 leading-relaxed line-clamp-2">
-              {task.description}
-            </p>
+            <div className="text-sm text-stone-400 leading-relaxed line-clamp-2 [&_*]:leading-relaxed">
+              <ReactMarkdown remarkPlugins={[remarkGfm]} components={INLINE_MD}>
+                {task.description}
+              </ReactMarkdown>
+            </div>
           )}
         </div>
 
@@ -167,7 +198,7 @@ export default function TaskCard({ task, onDragStart }: TaskCardProps) {
         </div>
       </div>
 
-      {/* Context menu rendered via portal so it escapes all overflow ancestors */}
+      {/* Context menu via portal */}
       {menuOpen && menuPos && createPortal(
         <>
           <div className="fixed inset-0 z-40" onClick={closeMenu} />
@@ -220,6 +251,17 @@ export default function TaskCard({ task, onDragStart }: TaskCardProps) {
         document.body
       )}
 
+      {/* View modal — opened on card click */}
+      {viewOpen && (
+        <TaskViewModal
+          open={viewOpen}
+          task={task}
+          onClose={() => setViewOpen(false)}
+          onEdit={() => { setViewOpen(false); setEditOpen(true) }}
+        />
+      )}
+
+      {/* Edit modal */}
       {editOpen && (
         <EditTaskModal
           open={editOpen}
@@ -230,3 +272,6 @@ export default function TaskCard({ task, onDragStart }: TaskCardProps) {
     </>
   )
 }
+
+// React must be in scope for JSX (used in INLINE_MD object literals)
+import React from 'react'

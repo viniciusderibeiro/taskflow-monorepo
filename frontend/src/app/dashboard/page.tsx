@@ -64,17 +64,18 @@ export default function DashboardPage() {
 
   return (
     <div>
-      {/* ── Page title ────────────────────────────────────────────── */}
-      <div className="mb-5">
-        <h1 className="text-2xl font-bold text-stone-900 tracking-tight">Tasks</h1>
-        <p className="text-sm text-stone-500 mt-0.5">
-          Gerencie e acompanhe as tarefas do seu time.
-        </p>
-      </div>
+      {/* ── White full-bleed header section ───────────────────────── */}
+      <div className="-mx-4 sm:-mx-6 -mt-5 sm:-mt-6 px-4 sm:px-6 pt-5 sm:pt-6 bg-white border-b border-stone-200 mb-6">
+        {/* Page title */}
+        <div className="mb-4">
+          <h1 className="text-2xl font-bold text-stone-900 tracking-tight">Tasks</h1>
+          <p className="text-sm text-stone-500 mt-0.5">
+            Organize, priorize e acompanhe todas as suas tarefas.
+          </p>
+        </div>
 
-      {/* ── Tabs + controls ───────────────────────────────────────── */}
-      <div className="border-b border-stone-200 mb-0">
-        <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2 py-3">
+        {/* Tabs + controls */}
+        <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
           {/* Tabs */}
           <div className="flex items-center gap-0.5">
             <TabButton active icon={<BoardIcon />}>Board</TabButton>
