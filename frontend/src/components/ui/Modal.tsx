@@ -7,6 +7,8 @@ interface ModalProps {
   onClose: () => void
   title: string
   children: React.ReactNode
+  size?: 'md' | 'lg'
+  titleClassName?: string
 }
 
 const XIcon = () => (
@@ -23,7 +25,7 @@ const XIcon = () => (
   </svg>
 )
 
-export default function Modal({ isOpen, onClose, title, children }: ModalProps) {
+export default function Modal({ isOpen, onClose, title, children, size = 'md', titleClassName }: ModalProps) {
   const overlayRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -47,11 +49,11 @@ export default function Modal({ isOpen, onClose, title, children }: ModalProps) 
     >
       <div className="absolute inset-0 bg-stone-900/40" />
       <div
-        className="relative bg-white rounded-2xl w-full max-w-md p-6"
+        className={`relative bg-white rounded-2xl w-full p-6 ${size === 'lg' ? 'max-w-lg' : 'max-w-md'}`}
         style={{ boxShadow: 'var(--shadow-modal)' }}
       >
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-sm font-semibold text-stone-900">{title}</h2>
+          <h2 className={titleClassName ?? 'text-sm font-semibold text-stone-900'}>{title}</h2>
           <button
             onClick={onClose}
             aria-label="Fechar"
