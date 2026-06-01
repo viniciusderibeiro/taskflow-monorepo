@@ -2,7 +2,7 @@
 
 # TaskFlow - Kanban
 
-### Gestão de tarefas Kanban, fullstack e conteinerizada — da ideia ao deploy.
+### Gestão de tarefas Kanban, fullstack, conteinerizada e deploy.
 
 [![CI](https://github.com/viniciusderibeiro/taskflow-monorepo/actions/workflows/ci.yml/badge.svg)](https://github.com/viniciusderibeiro/taskflow-monorepo/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
