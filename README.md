@@ -115,15 +115,32 @@ Make sure the following tools are installed before starting:
 
 The fastest way to bring up the entire project (frontend + backend + database + cache):
 
+### 1. Clone the repository
+
 ```bash
-# 1. Clone the repository
 git clone https://github.com/viniciusderibeiro/taskflow-monorepo.git
 cd taskflow-monorepo
+```
 
-# 2. Create the environment variables file
-cp .env.example .env
+### 2. Create the environment variables file
 
-# 3. Start all services
+Create a `.env` file at the project root based on `.env.example`:
+
+```env
+DATABASE_URL=jdbc:postgresql://localhost:5432/taskflow
+DATABASE_USERNAME=postgres
+DATABASE_PASSWORD=[your_password_here]
+JWT_SECRET=[generate_a_secure_key_of_at_least_256_bits]
+JWT_EXPIRATION=86400000
+REDIS_HOST=localhost
+REDIS_PORT=6379
+```
+
+> ⚠️ **Warning:** never commit your `.env` file with real credentials. The `.gitignore` is already configured to ignore it.
+
+### 3. Start all services
+
+```bash
 docker compose up --build
 ```
 
@@ -136,9 +153,9 @@ After the build, services will be available at:
 | 📚 Swagger UI   | `http://localhost:8080/swagger-ui.html`       |
 | 🗄️ PostgreSQL   | `localhost:5432`                              |
 
-### Option 2 — Manual (Local)
+## Option 2 — Manual (Local)
 
-#### Backend (Spring Boot)
+### Backend (Spring Boot)
 
 ```bash
 cd backend/api
@@ -148,7 +165,7 @@ cd backend/api
 
 The backend will be available at `http://localhost:8080`.
 
-#### Frontend (Next.js)
+### Frontend (Next.js)
 
 ```bash
 cd frontend
@@ -157,26 +174,6 @@ npm run dev
 ```
 
 The frontend will be available at `http://localhost:3000`.
-
-### Environment Variables
-
-Create a `.env` file at the project root based on `.env.example`:
-
-```env
-# === Backend ===
-DATABASE_URL=jdbc:postgresql://localhost:5432/taskflow
-DATABASE_USERNAME=postgres
-DATABASE_PASSWORD=[your_password_here]
-JWT_SECRET=[generate_a_secure_key_of_at_least_256_bits]
-JWT_EXPIRATION=86400000
-REDIS_HOST=localhost
-REDIS_PORT=6379
-
-# === Frontend ===
-NEXT_PUBLIC_API_URL=http://localhost:8080
-```
-
-> ⚠️ **Warning:** never commit your `.env` file with real credentials. The `.gitignore` is already configured to ignore it.
 
 ---
 
@@ -399,13 +396,14 @@ Antes de começar, garanta que os seguintes itens estejam instalados:
 
 ### Opção 1 — Via Docker (Recomendado)
 
-```bash
-# 1. Clone o repositório
+### 1. Clone o repositório
 
+```bash
 git clone https://github.com/viniciusderibeiro/taskflow-monorepo.git
 cd taskflow-monorepo
+```
 
-# 2. Variáveis de Ambiente
+### 2. Criando as variaveis de ambiente
 
 Crie um arquivo `.env` na raiz do projeto baseado no `.env.example`:
 
@@ -422,7 +420,9 @@ ALLOWED_ORIGINS=http://localhost:3000
 
 > ⚠️ **Atenção:** nunca commite o arquivo `.env` com credenciais reais. O `.gitignore` já está configurado para ignorá-lo.
 
-# 3. Suba todos os serviços
+### 3. Suba todos os serviços
+
+```bash
 docker compose up --build
 ```
 
@@ -435,9 +435,9 @@ Após o build, os serviços estarão disponíveis em:
 | 📚 Swagger UI   | `http://localhost:8080/swagger-ui.html`       |
 | 🗄️ PostgreSQL   | `localhost:5432`                              |
 
-### Opção 2 — Execução Manual (Local)
+## Opção 2 — Execução Manual (Local)
 
-#### Backend (Spring Boot)
+### Backend (Spring Boot)
 
 ```bash
 cd backend/api
@@ -447,7 +447,7 @@ cd backend/api
 
 O backend ficará disponível em `http://localhost:8080`.
 
-#### Frontend (Next.js)
+### Frontend (Next.js)
 
 ```bash
 cd frontend
