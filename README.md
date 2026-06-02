@@ -401,11 +401,26 @@ Antes de começar, garanta que os seguintes itens estejam instalados:
 
 ```bash
 # 1. Clone o repositório
+
 git clone https://github.com/viniciusderibeiro/taskflow-monorepo.git
 cd taskflow-monorepo
 
-# 2. Crie o arquivo de variáveis de ambiente
-cp .env.example .env
+# 2. Variáveis de Ambiente
+
+Crie um arquivo `.env` na raiz do projeto baseado no `.env.example`:
+
+```env
+DB_URL=jdbc:postgresql://localhost:5432/taskflowdb
+POSTGRES_DB=taskflowdb
+DB_USERNAME=postgres
+DB_PASSWORD=[sua senha]
+SERVER_PORT=8081
+JWT_SECRET=taskflow-secret-key-deve-ter-no-minimo-32-caracteres
+JWT_EXPIRATION=86400000
+ALLOWED_ORIGINS=http://localhost:3000
+```
+
+> ⚠️ **Atenção:** nunca commite o arquivo `.env` com credenciais reais. O `.gitignore` já está configurado para ignorá-lo.
 
 # 3. Suba todos os serviços
 docker compose up --build
@@ -441,26 +456,6 @@ npm run dev
 ```
 
 O frontend ficará disponível em `http://localhost:3000`.
-
-### Variáveis de Ambiente
-
-Crie um arquivo `.env` na raiz do projeto baseado no `.env.example`:
-
-```env
-# === Backend ===
-DATABASE_URL=jdbc:postgresql://localhost:5432/taskflow
-DATABASE_USERNAME=postgres
-DATABASE_PASSWORD=[insira_sua_senha_aqui]
-JWT_SECRET=[gere_uma_chave_segura_de_pelo_menos_256_bits]
-JWT_EXPIRATION=86400000
-REDIS_HOST=localhost
-REDIS_PORT=6379
-
-# === Frontend ===
-NEXT_PUBLIC_API_URL=http://localhost:8080
-```
-
-> ⚠️ **Atenção:** nunca commite o arquivo `.env` com credenciais reais. O `.gitignore` já está configurado para ignorá-lo.
 
 ---
 
