@@ -2,8 +2,6 @@
 
 # TaskFlow - Kanban
 
-### Fullstack, containerized, and deployed Kanban task management.
-
 [![CI](https://github.com/viniciusderibeiro/taskflow-monorepo/actions/workflows/ci.yml/badge.svg)](https://github.com/viniciusderibeiro/taskflow-monorepo/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Next.js](https://img.shields.io/badge/Next.js-14-black?logo=next.js)](https://nextjs.org/)
@@ -12,19 +10,16 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 
-**[🐛 Issues - Feature Requests · Propostas de melhorias](https://github.com/viniciusderibeiro/taskflow-monorepo/issues)**
+**TaskFlow** is a modern, full-stack, and fully containerized Kanban task management platform.
+
+[🐛 Report a Bug / Feature Request](https://github.com/viniciusderibeiro/taskflow-monorepo/issues) • [⭐ Support this project with a star!](https://github.com/viniciusderibeiro/taskflow-monorepo)
 
 </div>
 
-<div align="center">
-  
-  ## Choose your language below / Escolha o idioma abaixo:
-  
-</div>
-
+## 🌐 Documentation / Documentação
 
 <details id="english">
-<summary>🇺🇸 <b>English (click to expand)</b></summary>
+<summary>🇺🇸 <b>English (click to learn more)</b></summary>
 
 ## 📖 About the Project
 
@@ -307,7 +302,7 @@ Distributed under the **MIT** license. See the [`LICENSE`](./LICENSE) file for m
 </details>
 
 <details id="portugues">
-<summary>🇧🇷 <b>Português (clique para expandir)</b></summary>
+<summary>🇧🇷 <b>Português (clique para saber mais)</b></summary>
 
 ## 📖 Sobre o Projeto
 
@@ -585,11 +580,3 @@ Distribuído sob a licença **MIT**. Veja o arquivo [`LICENSE`](./LICENSE) para 
 [![Email](https://img.shields.io/badge/Email-EA4335?style=flat&logo=gmail&logoColor=white)](mailto:viniciusderibeiro.work@gmail.com)
 
 </details>
-
----
-
-<div align="left">
-
-⭐ **Apoie o projeto com uma estrela! / Support this project with a star!** ⭐
-
-</div>
